@@ -370,7 +370,7 @@ const cleanPlayers = () => S.players.map((n, i) => n.trim() || `Spieler ${i + 1}
 const maxSpies = n => Math.max(1, Math.floor((n - 1) / 2));
 
 // ---------- runtime state ----------
-let view = "home", G = null, editId = null, editType = "spy", packTab = "spy", confirmDel = false, tick = null, wakeLock = null;
+let view = "home", G = null, editId = null, editType = "spy", packTab = "spy", confirmDel = false, tick = null, wakeLock = null, lastScreen = "";
 
 function toast(msg) {
   const t = document.createElement("div"); t.className = "toast"; t.textContent = msg; document.body.appendChild(t);
@@ -393,7 +393,9 @@ function render() {
   const app = $("#app");
   app.innerHTML = ({ home: vHome, packs: vPacks, edit: vEdit, pass: vPass, talk: vTalk, end: vEnd })[view]();
   if (view === "talk") { tick = setInterval(updTimer, 250); updTimer(); }
-  window.scrollTo(0, 0);
+  // nur bei Wechsel des Bildschirms nach oben springen
+  const screen = `${view}|${editId}|${packTab}|${view === "pass" ? G?.idx : ""}`;
+  if (screen !== lastScreen) { window.scrollTo(0, 0); lastScreen = screen; }
 }
 
 function vHome() {
