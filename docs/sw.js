@@ -1,4 +1,4 @@
-const CACHE = "spion-8d4f7743cd";
+const CACHE = "spion-92a273a";
 const CORE = ["./", "index.html", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png", "icons/apple-touch-icon.png"];
 
 self.addEventListener("install", e => {
@@ -12,7 +12,7 @@ self.addEventListener("fetch", e => {
   if (req.method !== "GET") return;
   // Seite: erst Netz (für Updates), offline aus dem Cache
   if (req.mode === "navigate") {
-    e.respondWith(fetch(req).then(res => {
+    e.respondWith(fetch(req, { cache: "no-cache" }).then(res => {
       const copy = res.clone(); caches.open(CACHE).then(c => c.put("index.html", copy)); return res;
     }).catch(() => caches.match("index.html")));
     return;

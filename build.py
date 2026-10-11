@@ -37,9 +37,17 @@ img {{ max-width: 100%; }}
 
 SW_REGISTER = """
 <script>
-// kein Zoomen: Zwei-Finger-Geste (Safari) und Doppeltipp blockieren
-document.addEventListener("gesturestart", e => e.preventDefault());
-document.addEventListener("dblclick", e => e.preventDefault(), { passive: false });
+// kein Zoomen: iOS ignoriert user-scalable=no, daher die Gesten selbst abfangen
+const stop = e => e.preventDefault();
+for (const g of ["gesturestart", "gesturechange", "gestureend"]) document.addEventListener(g, stop, { passive: false });
+document.addEventListener("touchmove", e => { if (e.touches.length > 1 || (e.scale && e.scale !== 1)) e.preventDefault(); }, { passive: false });
+let lastTouch = 0;
+document.addEventListener("touchend", e => {
+  const now = Date.now();
+  // Doppeltipp: zweiten Tipp nicht als Zoom werten, Klick trotzdem auslösen
+  if (now - lastTouch < 350 && !e.target.closest("input, textarea")) { e.preventDefault(); e.target.closest("button")?.click(); }
+  lastTouch = now;
+}, { passive: false });
 if ("serviceWorker" in navigator) addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
 </script>
 </body>
@@ -60,7 +68,7 @@ self.addEventListener("fetch", e => {
   if (req.method !== "GET") return;
   // Seite: erst Netz (für Updates), offline aus dem Cache
   if (req.mode === "navigate") {
-    e.respondWith(fetch(req).then(res => {
+    e.respondWith(fetch(req, { cache: "no-cache" }).then(res => {
       const copy = res.clone(); caches.open(CACHE).then(c => c.put("index.html", copy)); return res;
     }).catch(() => caches.match("index.html")));
     return;
@@ -98,7 +106,9 @@ def draw_icon(size, pad=0.0):
 
 def main():
     src = (ROOT / "spion.html").read_text(encoding="utf-8")
-    html = HEAD + src.replace('<div id="app"', '</head>\n<body>\n<div id="app"', 1) + SW_REGISTER
+    version = hashlib.sha1((src + SW_REGISTER + HEAD).encode()).hexdigest()[:7]
+    ver = f'<p style="text-align:center;font:11px ui-monospace,Menlo,monospace;color:#8ea3b3;opacity:.6;margin:0 0 16px">Version {version}</p>\n'
+    html = HEAD + src.replace('<div id="app" class="wrap"></div>', '</head>\n<body>\n<div id="app" class="wrap"></div>\n' + ver, 1) + SW_REGISTER
     # <title>, Fonts und <style> aus spion.html landen im <head>, der Rest im <body>
     (OUT / "icons").mkdir(parents=True, exist_ok=True)
     (OUT / "index.html").write_text(html, encoding="utf-8")
@@ -120,7 +130,6 @@ def main():
     }
     (OUT / "manifest.webmanifest").write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
 
-    version = hashlib.sha1(html.encode()).hexdigest()[:10]
     (OUT / "sw.js").write_text(SW.replace("__VERSION__", version), encoding="utf-8")
     (OUT / ".nojekyll").write_text("")
     print(f"docs/ gebaut, Version {version}")
