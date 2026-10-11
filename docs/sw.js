@@ -1,4 +1,4 @@
-const CACHE = "spion-544e4a9fed";
+const CACHE = "spion-8d4f7743cd";
 const CORE = ["./", "index.html", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png", "icons/apple-touch-icon.png"];
 
 self.addEventListener("install", e => {

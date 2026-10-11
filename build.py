@@ -17,7 +17,7 @@ HEAD = f"""<!doctype html>
 <html lang="de">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="{BG}">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -29,6 +29,7 @@ HEAD = f"""<!doctype html>
 <style>
 :root {{ padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }}
 body {{ margin: 0; }}
+html, body {{ touch-action: manipulation; -webkit-text-size-adjust: 100%; }}
 img {{ max-width: 100%; }}
 [hidden] {{ display: none !important; }}
 </style>
@@ -36,6 +37,9 @@ img {{ max-width: 100%; }}
 
 SW_REGISTER = """
 <script>
+// kein Zoomen: Zwei-Finger-Geste (Safari) und Doppeltipp blockieren
+document.addEventListener("gesturestart", e => e.preventDefault());
+document.addEventListener("dblclick", e => e.preventDefault(), { passive: false });
 if ("serviceWorker" in navigator) addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
 </script>
 </body>
