@@ -1,0 +1,730 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0d1720">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Spion">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<style>
+:root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+body { margin: 0; }
+img { max-width: 100%; }
+[hidden] { display: none !important; }
+</style>
+<title>Spion &amp; Imposter</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: single phone-first column, pass-the-phone screens; dark single look for dim party rooms, brass accent, cool "case file" paper for secret cards */
+:root {
+  --bg: #0d1720;
+  --panel: #152330;
+  --panel-2: #1c2d3c;
+  --line: #2a3e50;
+  --ink: #e6edf2;
+  --muted: #8ea3b3;
+  --brass: #e2a948;
+  --brass-ink: #1a1206;
+  --alarm: #e86a5c;
+  --paper: #dbe4e8;
+  --paper-ink: #13202a;
+  --paper-line: #b4c3cb;
+  --f-display: "Barlow Condensed", "Arial Narrow", "Helvetica Neue", sans-serif;
+  --f-body: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { min-height: 100%; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: var(--f-body); font-size: 16px; line-height: 1.5;
+  -webkit-tap-highlight-color: transparent;
+}
+.wrap { max-width: 34rem; margin: 0 auto; padding-inline: 16px; padding-block: 20px 48px; display: flex; flex-direction: column; gap: 22px; }
+h1, h2, h3 { margin: 0; text-wrap: balance; }
+p { margin: 0; }
+button, input, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
+
+.brand { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.brand h1 { font-family: var(--f-display); font-weight: 800; font-size: 3rem; line-height: .9; letter-spacing: .02em; text-transform: uppercase; }
+.brand h1 span { color: var(--brass); }
+.brand p { color: var(--muted); font-size: .9rem; }
+
+.label { font-family: var(--f-mono); font-size: .72rem; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.section { display: flex; flex-direction: column; gap: 10px; }
+.section-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+
+.seg { display: grid; grid-template-columns: 1fr 1fr; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 4px; gap: 4px; }
+.seg button { border: 0; background: transparent; padding: 10px 8px; border-radius: 9px; font-family: var(--f-display); font-weight: 800; font-size: 1.35rem; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+.seg button[aria-pressed="true"] { background: var(--brass); color: var(--brass-ink); }
+.mode-note { color: var(--muted); font-size: .92rem; }
+
+.players { display: flex; flex-direction: column; gap: 6px; }
+.prow { display: grid; grid-template-columns: 2.2rem 1fr 2.6rem; align-items: center; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; }
+.prow .num { font-family: var(--f-mono); font-size: .8rem; color: var(--muted); text-align: center; }
+.prow input { border: 0; background: transparent; padding: 11px 4px; min-width: 0; outline: none; }
+.prow:focus-within { border-color: var(--brass); }
+.icon-btn { border: 0; background: transparent; color: var(--muted); font-size: 1.3rem; height: 100%; }
+.icon-btn:hover { color: var(--alarm); }
+
+.btn { border: 1px solid var(--line); background: var(--panel-2); padding: 11px 16px; border-radius: 10px; font-weight: 700; }
+.btn:hover { border-color: var(--muted); }
+.btn.ghost { background: transparent; }
+.btn.small { padding: 7px 12px; font-size: .9rem; }
+.btn.danger { color: var(--alarm); border-color: color-mix(in srgb, var(--alarm) 45%, var(--line)); }
+.btn.primary { background: var(--brass); color: var(--brass-ink); border-color: var(--brass); }
+.btn.big { width: 100%; padding: 16px; font-family: var(--f-display); font-weight: 800; font-size: 1.6rem; letter-spacing: .05em; text-transform: uppercase; }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.row.end { justify-content: flex-end; }
+
+.settings { display: grid; grid-template-columns: 1fr; gap: 6px; }
+.set { display: flex; justify-content: space-between; align-items: center; gap: 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 8px 8px 8px 14px; }
+.set .hint { color: var(--muted); font-size: .82rem; }
+.stepper { display: flex; align-items: center; gap: 4px; }
+.stepper button { width: 2.4rem; height: 2.4rem; border-radius: 8px; border: 1px solid var(--line); background: var(--panel-2); font-size: 1.2rem; }
+.stepper output { min-width: 3.4rem; text-align: center; font-family: var(--f-mono); font-weight: 700; font-variant-numeric: tabular-nums; }
+.switch { width: 3.2rem; height: 1.9rem; border-radius: 99px; border: 1px solid var(--line); background: var(--panel-2); position: relative; flex: none; }
+.switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 1.4rem; height: 1.4rem; border-radius: 50%; background: var(--muted); transition: transform .15s; }
+.switch[aria-checked="true"] { background: var(--brass); border-color: var(--brass); }
+.switch[aria-checked="true"]::after { transform: translateX(1.3rem); background: var(--brass-ink); }
+
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { display: inline-flex; gap: 8px; align-items: baseline; border: 1px solid var(--line); background: var(--panel); border-radius: 99px; padding: 7px 14px; font-size: .95rem; }
+.chip small { font-family: var(--f-mono); color: var(--muted); font-size: .75rem; }
+.chip[aria-pressed="true"] { border-color: var(--brass); background: color-mix(in srgb, var(--brass) 16%, var(--panel)); }
+.chip[aria-pressed="true"] small { color: var(--brass); }
+.pool-note { font-size: .9rem; color: var(--muted); }
+.pool-note b { color: var(--ink); font-variant-numeric: tabular-nums; }
+.warn { color: var(--alarm); font-size: .92rem; }
+
+/* pack manager */
+.topbar { display: flex; align-items: center; gap: 10px; }
+.topbar h2 { font-family: var(--f-display); font-weight: 800; font-size: 2rem; text-transform: uppercase; letter-spacing: .03em; line-height: 1; }
+.back { border: 1px solid var(--line); background: var(--panel); border-radius: 10px; width: 2.6rem; height: 2.6rem; font-size: 1.2rem; flex: none; }
+.packlist { display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+.pack { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; padding: 12px 14px; background: var(--panel); }
+.pack + .pack { border-top: 1px solid var(--line); }
+.pack .meta { min-width: 0; }
+.pack .meta b { display: block; overflow-wrap: anywhere; }
+.pack .meta span { font-size: .82rem; color: var(--muted); }
+.tag { font-family: var(--f-mono); font-size: .65rem; letter-spacing: .1em; text-transform: uppercase; border: 1px solid var(--line); border-radius: 4px; padding: 1px 5px; margin-left: 6px; color: var(--muted); vertical-align: 2px; }
+.box { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+.box p { color: var(--muted); font-size: .92rem; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field input, textarea { background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 11px 12px; width: 100%; outline: none; }
+.field input:focus, textarea:focus { border-color: var(--brass); }
+textarea { min-height: 16rem; resize: vertical; font-family: var(--f-mono); font-size: .85rem; line-height: 1.55; }
+textarea.short { min-height: 7rem; }
+code { font-family: var(--f-mono); font-size: .85em; background: var(--bg); padding: 1px 5px; border-radius: 4px; color: var(--ink); }
+.toast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 10px; font-weight: 700; z-index: 9; max-width: calc(100% - 32px); }
+
+/* pass the phone */
+.stage { min-height: calc(100vh - 80px); display: flex; flex-direction: column; justify-content: center; gap: 26px; text-align: center; }
+.stage .who { font-family: var(--f-display); font-weight: 800; font-size: clamp(3rem, 16vw, 5.2rem); line-height: .95; text-transform: uppercase; color: var(--brass); overflow-wrap: anywhere; }
+.progress { display: flex; gap: 5px; justify-content: center; flex-wrap: wrap; }
+.progress i { width: 22px; height: 5px; border-radius: 3px; background: var(--line); }
+.progress i.done { background: var(--brass); }
+.file {
+  background: var(--paper); color: var(--paper-ink); border-radius: 6px; padding: 22px 20px 26px; text-align: left;
+  background-image: repeating-linear-gradient(to bottom, transparent 0 31px, var(--paper-line) 31px 32px);
+  box-shadow: 0 18px 40px -18px #000; position: relative; display: flex; flex-direction: column; gap: 14px;
+}
+.file .stamp { position: absolute; top: 16px; right: 14px; font-family: var(--f-display); font-weight: 800; font-size: 1rem; letter-spacing: .1em; border: 2px solid currentColor; padding: 2px 8px; transform: rotate(6deg); color: #9a3a2f; }
+.file .k { font-family: var(--f-mono); font-size: .7rem; letter-spacing: .16em; text-transform: uppercase; color: #4b5d69; }
+.file .v { font-family: var(--f-display); font-weight: 800; font-size: clamp(2.2rem, 11vw, 3.4rem); line-height: 1; text-transform: uppercase; overflow-wrap: anywhere; padding-right: 4.5rem; }
+.file .v.role { font-size: clamp(1.5rem, 7vw, 2.1rem); padding-right: 0; }
+.file.spy { background: #2a1513; color: #f6dcd6; background-image: repeating-linear-gradient(135deg, transparent 0 18px, #ffffff08 18px 36px); }
+.file.spy .k { color: #e4a79d; }
+.file.spy .stamp { color: var(--alarm); }
+.file p { font-size: 1rem; }
+
+/* discussion */
+.timer { font-family: var(--f-mono); font-weight: 700; font-size: clamp(4rem, 24vw, 7rem); line-height: 1; font-variant-numeric: tabular-nums; text-align: center; letter-spacing: -.02em; }
+.timer.low { color: var(--alarm); }
+.timer.paused { opacity: .5; }
+.starter { text-align: center; color: var(--muted); }
+.starter b { color: var(--ink); font-size: 1.2rem; }
+.grid-locs { display: grid; grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr)); gap: 6px; }
+.grid-locs button { border: 1px solid var(--line); background: var(--panel); border-radius: 8px; padding: 9px 10px; text-align: left; font-size: .9rem; min-width: 0; overflow-wrap: anywhere; }
+.grid-locs button.struck { opacity: .35; text-decoration: line-through; }
+.result { text-align: center; display: flex; flex-direction: column; gap: 8px; }
+.result .big { font-family: var(--f-display); font-weight: 800; font-size: clamp(2.6rem, 13vw, 4rem); line-height: 1; text-transform: uppercase; color: var(--brass); overflow-wrap: anywhere; }
+.result .names { font-size: 1.3rem; font-weight: 700; color: var(--alarm); }
+.rolelist { display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+.rolelist div { display: flex; justify-content: space-between; gap: 12px; padding: 10px 14px; background: var(--panel); }
+.rolelist div + div { border-top: 1px solid var(--line); }
+.rolelist span { color: var(--muted); text-align: right; }
+.rolelist .is-spy span { color: var(--alarm); font-weight: 700; }
+
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+
+</head>
+<body>
+<div id="app" class="wrap"></div>
+
+<script>
+// ---------- Built-in packs ----------
+// Format: "Ort: Rolle, Rolle, ..." (Spion) bzw. ein Begriff pro Zeile (Imposter)
+const BUILTIN = [
+  { id: "b-klassik", type: "spy", name: "Klassiker", text: `
+Flughafen: Pilotin kurz vor der Rente, Flugbegleiter, Zollbeamtin mit Spürhund, Passagier mit Flugangst, Gepäckabfertiger, Fluglotsin, Duty-Free-Verkäufer, Familie, die das Gate verpasst
+Bank: Filialleiterin, Kassierer, Bankräuber mit Strumpfmaske, Sicherheitsmann, Kundin, die einen Kredit für ein Pferd will, Anlageberater, Tresortechnikerin, Praktikant am ersten Tag
+Strand: Rettungsschwimmerin, Eisverkäufer, Surflehrer, Kind beim Sandburgbau, Touristin mit Sonnenbrand, Mann mit Metalldetektor, Beachvolleyballerin, Strandkorbvermieter
+Theater: Hauptdarstellerin mit Lampenfieber, Souffleur, Regisseurin, Bühnentechniker, Kritiker in Reihe 1, Garderobiere, Zweitbesetzung, die auf ihre Chance wartet, Zuschauerin, die einschläft
+Casino: Croupier, Highrollerin, Türsteher, Falschspieler, Barkeeperin, Kartenzähler, Rentnerin am Spielautomaten, Hausdetektiv
+Krankenhaus: Chirurgin, Krankenpfleger im Nachtdienst, Patient mit Gipsbein, Hebamme, Notarzt, Klinikclown, Simulant, Chefarzt bei der Visite
+Hotel: Rezeptionistin, Zimmermädchen, Page, Hoteldetektiv, Hochzeitspaar in den Flitterwochen, Hotelkoch, Influencerin, die ein Upgrade will, Liftboy
+Militärbasis: Generalin, Rekrut, Sanitäterin, Wachposten, Funker, Panzerfahrerin, Feldkoch, Drill-Sergeant
+Kreuzfahrtschiff: Kapitänin, Animateur am Pool, Schiffskoch, Rentnerpaar auf Weltreise, Bordzauberer, Matrosin, seekranker Passagier, Bordärztin
+Restaurant: Sterneköchin, Kellner, Sommelière, Restaurantkritiker undercover, Tellerwäscher, Stammgast mit Extrawünschen, Mann mit Heiratsantrag im Dessert, Pizzabäcker
+Schule: Schulleiterin, Hausmeister, Klassensprecherin, Sportlehrer, Sitzenbleiber, Referendarin, Schulsanitäter, Kantinenfrau
+Raumstation: Kommandantin, Bordingenieur, Weltraumtouristin, Bordärztin, Biologe mit Pflanzenexperiment, Funkerin zur Bodenstation, Astronaut beim Außeneinsatz, Roboterarm-Steuerer
+U-Boot: Kapitän, Sonar-Offizierin, Smutje, Torpedomechaniker, Navigatorin, Funker, Kampftaucher, Rekrutin mit Platzangst
+Supermarkt: Kassiererin, Filialleiter, Regaleinräumer, Kundin mit Coupons, Ladendetektiv, Kind an der Quengelware, Metzgerin an der Fleischtheke, Pfandautomaten-Techniker
+Polizeiwache: Kommissarin, Verdächtiger, Anwältin, Streifenpolizist, Zeugin, Kriminaltechniker, Betrunkener in der Ausnüchterungszelle, Phantombildzeichnerin
+Zirkus: Clown, Trapezkünstlerin, Dompteur, Zauberin, Feuerschlucker, Messerwerfer, Zirkusdirektorin, Popcornverkäufer
+Zug: Schaffnerin, Lokführer, Pendlerin, Speisewagen-Kellner, Schwarzfahrer, Familie mit Kleinkind, Fußballfans auf Auswärtsfahrt, Bahnpolizistin
+Piratenschiff: Kapitän mit Holzbein, Steuerfrau, Gefangener, Schiffsjunge, Kanonierin, Schatzkartenleser, Smutje, Ausguck im Krähennest
+Botschaft: Botschafterin, Sicherheitschef, Dolmetscher, Sekretärin, Diplomat, Visa-Antragstellerin, Chauffeur, Koch beim Staatsbankett
+Filmset: Regisseurin, Stuntman, Maskenbildnerin, Kameramann, Statist, Produzentin, Filmstar mit Allüren, Klappenschläger
+Spa & Wellness: Masseurin, Saunameister beim Aufguss, Bademeisterin, gestresster Manager, Kosmetikerin, Yogalehrer, Rentnerin im Bademantel, Junggesellinnen-Gruppe
+Universität: Professorin, Erstsemester, Doktorand, Mensa-Köchin, Bibliothekar, Dekanin, Langzeitstudent im 23. Semester, Austauschstudentin
+Kirche: Pfarrerin, Organist, Messdienerin, Brautpaar, Küster, Chorsänger, Tourist mit Kamera, Frau bei der Beichte
+Polarstation: Forscherin, Meteorologe, Koch, Ärztin, Hundeschlittenführer, Geologin, Pinguinzählerin, Techniker am Generator
+Autowerkstatt: Mechanikerin, Azubi, Kunde mit Oldtimer, Lackierer, Werkstattmeisterin, TÜV-Prüfer, Reifenwechsler, Kundin mit komischem Geräusch
+Freizeitpark: Achterbahn-Operatorin, Maskottchen im Kostüm, Zuckerwatte-Verkäufer, Teenager, Vater mit Rucksack, Sanitäterin, Geisterbahn-Erschrecker, Kind, das zu klein ist
+Zoo: Tierpflegerin, Tierarzt, Schulkind, Tierfotografin, Kioskbesitzer, Zoodirektorin, Pinguinfütterer, entlaufener Affe
+Bibliothek: Bibliothekarin, Student vor der Prüfung, Leseratte, Hausmeister, Autorin bei der Lesung, Schläfer am Tisch, Schulklasse, Bücherdieb
+Fußballstadion: Schiedsrichterin, Torwart, Ultra-Fan, Bratwurstverkäufer, Sportreporterin, Ordner, Maskottchen, Trainer an der Seitenlinie
+Museum: Kuratorin, Wachmann, Kunstdieb, Lehrerin mit Schulklasse, Restauratorin, Mann mit Audioguide, Museumsführer, Künstlerin der Ausstellung
+Gefängnis: Wärterin, Häftling mit Fluchtplan, Gefängnisdirektor, Anwältin, Koch in der Kantine, Neuzugang, Besucherin am Besuchstag, Seelsorger
+Feuerwache: Feuerwehrfrau, Einsatzleiter, Rettungssanitäter, Drehleiterfahrer, Azubi, Hundeführerin der Rettungshunde, Kind beim Tag der offenen Tür, Disponentin in der Leitstelle
+Bauernhof: Bäuerin, Melker, Traktorfahrer, Schäferin, Kind auf Ferien, Tierärztin, Hofladen-Verkäufer, Erntehelfer
+Fernsehstudio: Moderatorin, Kameramann, Talkgast, Maskenbildnerin, Aufnahmeleiter, Applaus-Einpeitscherin, Wetterfee, Kandidat in der Quizshow
+Rockkonzert: Leadsängerin, Schlagzeuger, Roadie, Groupie, Security im Graben, Tontechnikerin, Merch-Verkäufer, Fan in der ersten Reihe
+Gericht: Richterin, Angeklagter, Staatsanwalt, Verteidigerin, Zeuge, Gerichtszeichnerin, Schöffe, Justizwachtmeister
+Kindergarten: Erzieherin, Kind beim Mittagsschlaf, Vater beim Abholen, Praktikant, Leiterin, Koch, Kind mit Wackelzahn, Hausmeister
+Hafen: Kranführerin, Zollbeamter, Fischhändler, Matrose auf Landgang, Hafenmeisterin, Schmuggler, Lotsin, Tourist bei der Hafenrundfahrt
+Bergwerk: Steiger, Sprengmeisterin, Grubenlok-Fahrer, neuer Bergmann, Geologin, Grubenwehr-Retter, Besucher bei der Führung, Schichtleiterin
+Bahnhof: Bahnhofsmission, Zugbegleiter, Taubenfütterer, Straßenmusikerin, Reisende mit riesigem Koffer, Kioskverkäufer, Durchsagen-Sprecherin, Pendler mit verspätetem Zug
+Weingut: Winzerin, Kellermeister, Weinprobe-Teilnehmer, Erntehelferin, Sommelier, Traktorfahrer, Weinkönigin, Händler aus Übersee
+Golfplatz: Golfprofi, Caddie, Greenkeeperin, Clubpräsident, Anfänger mit Leihschlägern, Golfcart-Fahrer, Sponsorin, Balltaucher im Teich
+Fernsehkoch-Show: Starkoch, Jurorin, Kandidat mit Familienrezept, Moderatorin, Kameramann, Küchenhilfe, Zuschauer im Studio, Lebensmittelchemikerin
+Wetterstation auf dem Berg: Meteorologin, Hüttenwart, Bergsteiger, Techniker an der Antenne, Fotografin, Hubschrauberpilot, Praktikant, Wanderer im Gewitter
+` },
+  { id: "b-alltag", type: "spy", name: "Deutschland & Alltag", text: `
+Oktoberfest: Bedienung mit acht Maß, Blaskapellen-Trompeter, Tourist in Lederhose, Sanitäterin, Brezenverkäufer, Festwirtin, Ordner am Zelteingang, Fahrgeschäft-Betreiber
+Weihnachtsmarkt: Glühweinverkäuferin, Weihnachtsmann, Taschendieb, Karussellbetreiber, Pärchen beim ersten Date, Lebkuchenbäckerin, Posaunenchor-Bläser, Maronenverkäufer
+Autobahnraststätte: Fernfahrer, Toiletten-Aufsicht, Familie auf Urlaubsfahrt, Biker, Kassierer, Polizistin auf Pause, Anhalterin, Reisebusfahrer
+Baumarkt: Fachberaterin, Heimwerker, Gabelstaplerfahrer, Kassierer, Paar beim Fliesenkauf, Azubi, Schlüsseldienst-Mann, Gärtnerin im Gartencenter
+Freibad: Bademeister, Pommesverkäuferin, Kind beim Arschbomben, Sonnenanbeterin, Teenager-Clique, Kassierer, Turmspringerin, Rentner beim Bahnenziehen
+Schrebergarten: Vereinsvorsitzender, Gartenzwerg-Sammlerin, neue Pächterin, Grillmeister, Nachbar mit Heckenschere, Kontrolleur der Gartenordnung, Enkelkind, Imkerin
+Bürgeramt: Sachbearbeiterin, Wartender mit Nummer 347, Hausmeister, Studentin beim Ummelden, Dolmetscherin, Security, Brautpaar beim Aufgebot, Rentner mit Beschwerde
+Kneipe: Wirtin, Stammtischbruder, Dartspieler, Quizmaster, Junggesellenabschied, Tresenkraft, Karaoke-Sänger, Fußballfan beim Public Viewing
+Dönerladen: Dönermann, Nachtschwärmerin, Lieferfahrer, Azubi am Spieß, Vegetarierin, Schulkind, Stammkunde „mit alles“, Taxifahrer auf Pause
+Fitnessstudio: Trainerin, Bodybuilder, Neujahrsvorsatz-Mitglied, Rezeptionist, Spinning-Kursleiterin, Selfie-Influencer, Rentnerin beim Reha-Sport, Reinigungskraft
+Musikfestival: Headlinerin, Roadie, Ordner, Camper mit Dosenbier, Bierstand-Verkäufer, Fotografin, Fan auf den Schultern, Dixi-Klo-Reiniger
+WG-Party: Gastgeberin, Nachbar mit Beschwerde, DJ in der Küche, Typ, den niemand eingeladen hat, Mitbewohner, der schlafen will, Spülmaschinen-Held, Pärchen auf dem Balkon, Pizzabote
+Bäckerei: Bäckermeister, Verkäuferin, Frühaufsteher, Lehrling, Rentnerin mit Kleingeld, Lieferfahrerin, Konditorin, Handwerker auf Frühstückspause
+Fahrschule: Fahrlehrer, Fahrschülerin, Prüfer, Motorradschüler, Bürokraft, nervöse Mutter, Theorielehrer, Schüler beim fünften Versuch
+Friseursalon: Friseurin, Kunde mit Fotovorlage, Azubi am Haarewaschen, Stammkundin mit Klatsch, Barbier, Influencerin, Kind beim ersten Haarschnitt, Coloristin
+Kino: Kartenabreißer, Popcornverkäuferin, Filmvorführer, Pärchen in der letzten Reihe, Kritikerin, Zuspätkommer, Handy-Störer, Putzkraft nach der Vorstellung
+Tankstelle: Tankwart, Nachtschicht-Kassiererin, LKW-Fahrer, Jugendliche beim Snackkauf, Waschanlagen-Betreuer, Pendlerin, Motorradfahrer, Kunde mit falschem Sprit
+Skihütte: Hüttenwirtin, Skilehrer, Snowboarderin, Après-Ski-DJ, Bergretter, Anfänger mit Gipsbein, Pistenraupenfahrer, Liftwärterin
+Campingplatz: Platzwart, Dauercamper mit Gartenzwerg, Familie mit Wohnwagen, Wanderin mit Zelt, Kioskbesitzerin, Grillnachbar, Pfadfinder, Animateurin
+Zahnarztpraxis: Zahnärztin, Helfer, Angstpatient, Kind mit Lolli, Kieferorthopäde, Rezeptionistin, Zahntechnikerin, Patient mit Weisheitszahn
+Hochzeit: Braut, Bräutigam, Trauzeugin, Fotograf, Onkel mit Rede, DJ, Ex der Braut, Hochzeitsplanerin
+Elternabend: Klassenlehrerin, Elternvertreter, Helikoptermutter, Vater, der zu spät kommt, Schulleiter, Hausmeisterin, Mutter mit Kuchenliste, Kassenwart der Klassenkasse
+Club: Türsteher, DJane, Barkeeper, Garderobiere, Tänzer auf dem Podest, Junggesellin, Klofrau, Raucher im Hinterhof
+Paketzentrum: Paketbotin, Schichtleiter, Sortierer, Gabelstaplerfahrerin, Kunde mit Abholschein, Azubi, Zollprüferin, Fahrer kurz vor Feierabend
+Hausarztpraxis: Hausärztin, Sprechstundenhilfe, Patient mit Erkältung, Simulant für den gelben Schein, Pharmavertreter, Rentnerin mit Tablettenplan, Kind beim Impfen, Laborantin
+Waschsalon: Besitzer, Student mit Wäscheberg, Rentnerin, Mutter mit Kinderwagen, Techniker, Sockendieb, Mann, der nur zum Lesen kommt, Frau beim ersten Date
+Flohmarkt: Antiquitätenhändlerin, Schnäppchenjäger, Kind mit Spielzeugstand, Platzwart, Schallplattensammler, Kuchenverkäuferin, Feilscher, Taschendieb
+Wochenmarkt: Gemüsehändlerin, Käsemann, Blumenverkäuferin, Fischhändler, Marktmeister, Rentner mit Einkaufstrolley, Biobäuerin, Straßenmusiker
+Tierheim: Tierpflegerin, Familie, die einen Hund adoptiert, Tierärztin, Gassigeher, Leiterin, Katzenflüsterer, Spendensammler, Praktikantin
+Möbelhaus: Verkäufer, Paar im Sofa-Streit, Kind im Bällebad, Monteur, Kassiererin, Hotdog-Verkäufer, Kunde mit Inbusschlüssel, Lagerarbeiter
+Großraumbüro: Chefin, Praktikant, Kollege, der zu laut telefoniert, IT-Support, Kaffeemaschinen-Junkie, Betriebsrätin, Neue am ersten Tag, Putzkraft
+Firmen-Weihnachtsfeier: Chef mit Rede, Praktikantin, Kollege beim Karaoke, Caterer, Betriebsrat, Wichtel-Organisatorin, Fotograf, Kollege, der zu viel trinkt
+Kindergeburtstag: Geburtstagskind, Mutter mit Torte, Clown, Kind, das weint, Vater beim Topfschlagen, Zauberer, Oma, Nachbarskind
+Eishalle: Eishockeyspieler, Schlittschuhverleiher, Eiskunstläuferin, Eismaschinenfahrer, Anfänger an der Bande, Eisdisco-DJ, Imbissverkäuferin, verliebtes Pärchen
+Bowlingbahn: Bowlingprofi, Kindergeburtstag-Gruppe, Schuhverleiher, Barkeeperin, Bahnenmechaniker, Firmenteam, Anfänger mit Bande, Pommesverkäufer
+Escape Room: Spielleiterin, Rätselfan, Schauspieler als Zombie, panischer Teilnehmer, Junggesellenabschied, Teambuilding-Chef, Hausmeister, Spieler, der alles besser weiß
+Karneval: Prinz Karneval, Funkenmariechen, Kamelle-Werfer, Zuschauer als Pirat, Polizistin, Wagenbauer, Kind mit Tüte, Büttenredner
+Umzug: Umzugshelfer mit Rücken, Möbelpacker, Freund, der nur zum Pizzaessen kommt, neue Nachbarin, Vermieter, Hausmeister, Kind zwischen Kartons, Fahrer des Transporters
+Autokino: Platzanweiser mit Taschenlampe, Pärchen im Cabrio, Familie im Van, Imbissverkäuferin, Filmvorführer, Pannenhelfer, Teenager auf dem Dach, Kassierer
+Arbeitsamt: Sachbearbeiter, Berufsberaterin, Schulabgänger, Quereinsteigerin, Security, Langzeitarbeitsloser mit Plan, Dolmetscher, Kantinenkraft
+Badesee: Rettungsschwimmerin, Angler, Tretbootverleiher, Kind mit Schwimmflügeln, FKK-Rentner, Kiosk-Besitzerin, Stand-up-Paddlerin, Teenager am Steg
+Kreuzung mit Unfall: Polizist, Unfallfahrerin, Gaffer mit Handy, Abschleppdienst, Notärztin, Gutachter, Radfahrer als Zeuge, Fahrschüler im Stau
+` },
+  { id: "b-abenteuer", type: "spy", name: "Abenteuer & Fantasy", text: `
+Mittelalterliche Burg: König, Hofnärrin, Ritter, Burgfräulein, Schmied, Bogenschützin, Mundschenk, Kerkermeister
+Zauberschule: Schulleiter, Zaubertrank-Lehrerin, Erstklässler, Hausgeist, Bibliothekarin, Wildhüter, Besenflug-Trainerin, Schüler mit verfluchtem Buch
+Wüstenkarawane: Karawanenführerin, Kamelreiter, Gewürzhändler, Kartografin, Wasserträger, Wahrsagerin, Wüstenräuber, Brunnenwächter
+Dschungel-Expedition: Expeditionsleiterin, Botaniker, Kamerafrau, Träger, Schlangenexperte, Schamanin, Schatzsucher, verirrter Tourist
+Mars-Kolonie: Gouverneurin, Gewächshaus-Gärtner, Robotertechnikerin, Neuankömmling von der Erde, Ärztin, Raumpilot, Geologin, Sauerstoff-Ingenieur
+Geisterhaus: Geisterjägerin, Medium, Hausbesitzer, Skeptiker, Gespenst, Immobilienmaklerin, Youtuber mit Nachtsichtkamera, Butler, der nie altert
+Wikingerschiff: Häuptling, Ruderin, Schildträger, Skalde, Navigatorin, gefangener Mönch, Berserker, Seherin
+Unterwasserstadt: Bürgermeisterin, Tiefseetaucher, Meeresbiologin, Wartungstechniker, Haifütterer, Perlenhändlerin, U-Boot-Taxifahrer, Meerjungfrau
+Ritterturnier: Herold, Turnierritterin, Knappe, Edeldame, Wettbetrüger, Hufschmiedin, Gaukler, Schwarzer Ritter
+Westernsaloon: Sheriff, Pokerspielerin, Barkeeper, Pianist, Kopfgeldjägerin, Goldgräber, Bandit, Tänzerin
+Pyramide: Archäologin, Grabräuber, Mumie, Führer, Fotograf, Hieroglyphen-Expertin, Kamelbesitzer, Fluchforscher
+Zeitmaschine: Erfinderin, Testpilot, Historikerin, Sicherheitsbeamter, Dinosaurierforscher, Zeitreisende aus dem Jahr 3000, Ritter, der versehentlich mitkam, Uhrmacherin
+Drachenhöhle: Drachenreiterin, Schatzjäger, Zauberer, gefangene Prinzessin, Zwerg, Barde, Drachenei-Dieb, Drachenforscherin
+Geheimlabor: Professorin, Laborratte, Assistent, Investorin, Klon, Sicherheitsroboter, Testperson, Hausmeister mit Generalschlüssel
+Leuchtturm im Sturm: Leuchtturmwärter, Schiffbrüchige, Fischer, Küstenwache, Meteorologin, Geist des alten Wärters, Möwenforscherin, Schmuggler
+Feenwald: Feenkönigin, Waldtroll, Kräuterhexe, verirrter Wanderer, sprechender Fuchs, Elfenbogenschütze, Kobold, Pilzsammlerin
+Dinosaurier-Insel: Paläontologin, Parkranger, Tierpfleger der Raptoren, Investor, Hubschrauberpilotin, Kind auf Führung, Großwildjäger, Genetikerin
+Ninja-Dojo: Großmeister, Schülerin, Schwertschmied, Teezeremonie-Meisterin, Spion des Feindes, Wächter, Bogenschütze, Kalligraf
+Römisches Kolosseum: Kaiser, Gladiatorin, Löwenwärter, Senator, Brotverteiler, Wettbüro-Besitzer, Sklave, Wagenlenker
+Hexenküche: Oberhexe, Lehrling, sprechende Katze, Kräutersammler, verzauberter Frosch, Kundin mit Liebestrank-Wunsch, Kesselputzer, Hexenjäger
+Zombie-Bunker: Anführerin, Arzt, Waffenmeister, Funkerin, Koch mit Dosenvorrat, gebissener Überlebender, Wissenschaftlerin, Kind mit Teddy
+Superhelden-Hauptquartier: Anführerin, Technik-Genie, Superheld mit Höhenangst, Butler, Bösewicht im Gefängnistrakt, Praktikant ohne Kräfte, Pressesprecherin, Ärztin
+Märchenschloss-Ball: Prinz, Aschenputtel, böse Stiefmutter, gute Fee, Hofmusiker, Schuhmacher, Wache am Tor, Kutscher um Mitternacht
+Goldrausch-Mine: Goldsucher, Minenbesitzerin, Sprengmeister, Maultiertreiber, Saloon-Wirtin, Betrüger mit Schatzkarte, Sheriff, Prospektorin
+Werkstatt des Weihnachtsmanns: Weihnachtsmann, Wichtel am Fließband, Rentierpfleger, Weihnachtsfrau, Geschenkeverpacker, Briefleser, Schlittenmechaniker, Wichtel im Streik
+Steinzeithöhle: Häuptling, Höhlenmalerin, Mammutjäger, Feuermacher, Medizinmann, Beerensammlerin, Erfinder des Rades, Säbelzahntiger-Flüchtling
+Agentenzentrale: Chefin, Technik-Tüftler, Doppelagent, Analystin, Fahrer des Fluchtwagens, Verhörspezialist, neue Rekrutin, Sekretärin, die alles weiß
+Olymp: Zeus, Hera, Hermes als Bote, Muse, Halbgott auf Besuch, Mundschenk mit Nektar, Orakel, Titan in Ketten
+Ozeandampfer 1912: Kapitän, Funker, Heizer im Kesselraum, Millionärin, Auswanderer in der dritten Klasse, Bordkapelle, Ausguck, Rettungsboot-Matrose
+Mondlandung 1969: Kommandant, Pilotin der Mondfähre, Missionskontrolle, Techniker, Reporterin, Ehefrau am Fernseher, Verschwörungstheoretiker, Flaggenhalter
+Zugüberfall im Wilden Westen: Lokführer, Bandit mit Halstuch, Sheriff an Bord, Goldtransport-Wächter, reiche Dame, Spieler im Salonwagen, Heizer, Kopfgeldjäger
+Riesen-Baumhaus: Anführer der Kinderbande, Späherin, Erfinder von Fallen, Kind mit Fernglas, Hund am Seil, Eltern unten, Eichhörnchen-Freundin, Neuer, der die Mutprobe macht
+` },
+  { id: "b-essen", type: "imp", name: "Essen & Trinken", text: "Pizza\nSushi\nDöner\nPfannkuchen\nCurrywurst\nLasagne\nSpaghetti Bolognese\nBrezel\nKäsefondue\nRaclette\nTiramisu\nCroissant\nRührei\nKartoffelsalat\nSchnitzel\nPopcorn\nGlühwein\nCappuccino\nMilchshake\nSmoothie\nTacos\nBurger\nSpargel\nWaffeln\nPommes\nNutella-Brot\nSchokoladenfondue\nZuckerwatte\nGummibärchen\nBratwurst\nKaiserschmarrn\nApfelstrudel\nRamen\nNachos\nSpiegelei\nMüsli\nHotdog\nKartoffelpuffer\nBier\nAperol Spritz\nEiskaffee\nSchwarzwälder Kirschtorte\nMaultaschen\nCrêpes" },
+  { id: "b-tiere", type: "imp", name: "Tiere", text: "Giraffe\nPinguin\nKänguru\nKrokodil\nEichhörnchen\nDelfin\nFaultier\nFlamingo\nIgel\nOktopus\nWaschbär\nAlpaka\nEule\nHai\nSchildkröte\nZebra\nPapagei\nBiene\nWal\nFledermaus\nHamster\nKoala\nPfau\nMaulwurf\nElefant\nLöwe\nPanda\nKamel\nNashorn\nQualle\nSchnecke\nStinktier\nGorilla\nEisbär\nSpinne\nChamäleon\nFrosch\nHuhn\nSchwein\nDackel" },
+  { id: "b-berufe", type: "imp", name: "Berufe", text: "Feuerwehrfrau\nZahnarzt\nPilotin\nBäcker\nAstronautin\nKoch\nLehrerin\nTierärztin\nRichter\nFriseur\nPolizistin\nGärtner\nArchitektin\nMusiker\nProgrammiererin\nDetektiv\nBriefträger\nJournalistin\nSchornsteinfeger\nHebamme\nClown\nTaxifahrer\nBauarbeiter\nZauberer\nFotografin\nMetzger\nKassiererin\nTätowierer\nBademeister\nSchauspielerin\nMüllmann\nInfluencerin\nDJ\nSchiedsrichter\nFlugbegleiterin" },
+  { id: "b-haus", type: "imp", name: "Dinge im Haushalt", text: "Staubsauger\nToaster\nKühlschrank\nZahnbürste\nWaschmaschine\nFernbedienung\nKopfkissen\nBügeleisen\nDuschvorhang\nSchneebesen\nSpiegel\nWecker\nKerze\nRegenschirm\nKleiderbügel\nMikrowelle\nTeppich\nLampe\nKorkenzieher\nFön\nKlobürste\nWäscheklammer\nKaffeemaschine\nSofa\nBadewanne\nNudelholz\nTesafilm\nTaschenlampe\nGießkanne\nSchlüsselbund\nKuscheltier\nBügelbrett\nMülleimer\nWärmflasche\nPfanne" },
+  { id: "b-hobby", type: "imp", name: "Sport & Hobbys", text: "Fußball\nYoga\nAngeln\nSchach\nKlettern\nSurfen\nKaraoke\nBowling\nTennis\nStricken\nSkifahren\nTanzen\nMinigolf\nGärtnern\nKochen\nPuzzeln\nJoggen\nBoxen\nTauchen\nMalen\nBasketball\nReiten\nTrampolin\nBeerpong\nDarts\nSchwimmen\nFallschirmspringen\nZelten\nFahrradfahren\nTischtennis\nSkateboarden\nGitarre spielen\nZocken\nSauna\nWandern" },
+  { id: "b-orte", type: "imp", name: "Orte & Länder", text: "Paris\nNew York\nItalien\nJapan\nÄgypten\nMallorca\nAustralien\nBerlin\nNorwegen\nMexiko\nVenedig\nIsland\nKanada\nLondon\nGriechenland\nBrasilien\nHawaii\nAlpen\nSahara\nAmazonas\nLas Vegas\nDubai\nNordsee\nMünchen\nHamburg\nRom\nChina\nIndien\nSchweiz\nNiederlande\nTürkei\nSpanien\nKöln\nAntarktis\nMount Everest\nHollywood\nDisneyland\nTokio\nThailand\nKaribik" },
+  { id: "b-film", type: "imp", name: "Filme & Serien", text: "Titanic\nHarry Potter\nStar Wars\nDer König der Löwen\nFindet Nemo\nShrek\nDer Herr der Ringe\nJurassic Park\nHome Alone\nToy Story\nFrozen\nFluch der Karibik\nBreaking Bad\nGame of Thrones\nStranger Things\nThe Office\nFriends\nDie Simpsons\nSpongeBob\nTatort\nSquid Game\nHaus des Geldes\nMatrix\nAvengers\nBatman\nSpider-Man\nJames Bond\nIndiana Jones\nZurück in die Zukunft\nDer weiße Hai\nForrest Gump\nMinions\nCars\nDie Eiskönigin\nBarbie\nGrey’s Anatomy\nDschungelcamp\nWer wird Millionär\nGermany’s Next Topmodel\nDas Traumschiff" },
+  { id: "b-figuren", type: "imp", name: "Berühmte Figuren", text: "Mickey Mouse\nSuper Mario\nPikachu\nDarth Vader\nShrek\nHomer Simpson\nSpongeBob\nBatman\nSpider-Man\nHarry Potter\nGandalf\nElsa\nDer Grinch\nSherlock Holmes\nJames Bond\nIndiana Jones\nPippi Langstrumpf\nBiene Maja\nBenjamin Blümchen\nDie Maus\nKermit\nKrümelmonster\nPumuckl\nGarfield\nAsterix\nDonald Duck\nRotkäppchen\nSchneewittchen\nDracula\nFrankenstein\nDer Weihnachtsmann\nOsterhase\nBob der Baumeister\nWickie\nDer kleine Prinz\nYoda\nSonic\nLara Croft\nGollum\nTarzan" },
+  { id: "b-kindheit", type: "imp", name: "Kindheit & Nostalgie", text: "Tamagotchi\nGameboy\nÜberraschungsei\nPokémon-Karten\nBravo\nMonchichi\nFurby\nPolly Pocket\nYu-Gi-Oh\nDiddl-Maus\nKassettenrekorder\nBobbycar\nPlaymobil\nLego\nFreundebuch\nSchultüte\nDickmann’s\nCapri-Sonne\nFlummi\nGummitwist\nWasserbombe\nKinderüberraschung\nNintendo 64\nPlayStation\nMSN Messenger\nKlapphandy\nSnake\nTeletubbies\nBenjamin Blümchen\nDie drei ???\nSchlümpfe\nHanuta\nBravo Hits\nMagnetmännchen\nSchulranzen" },
+  { id: "b-feste", type: "imp", name: "Feste & Anlässe", text: "Silvester\nWeihnachten\nOstern\nHalloween\nGeburtstag\nHochzeit\nJunggesellenabschied\nKarneval\nOktoberfest\nAbiball\nEinschulung\nBabyparty\nValentinstag\nBeerdigung\nKommunion\nTaufe\nSommerfest\nFirmenfeier\nMuttertag\nVatertag\nNikolaus\nSt. Martin\nPolterabend\nEinweihungsparty\nGrillparty\nKindergeburtstag\nFestival\nMallorca-Urlaub\nKlassenfahrt\nAbschlussfahrt" },
+  { id: "b-technik", type: "imp", name: "Fahrzeuge & Technik", text: "Fahrrad\nFlugzeug\nHubschrauber\nU-Bahn\nTraktor\nWohnmobil\nMotorrad\nRakete\nSegelboot\nKreuzfahrtschiff\nFeuerwehrauto\nKrankenwagen\nE-Scooter\nPanzer\nHeißluftballon\nSeilbahn\nSmartphone\nLaptop\nKopfhörer\nDrohne\nSpielkonsole\nFernseher\nVR-Brille\nSmartwatch\nNavi\nDrucker\nWLAN-Router\nTaschenrechner\nAkkuschrauber\nRasenmäher" },
+  { id: "b-marken", type: "imp", name: "Marken & Produkte", text: "Nutella\nIKEA\nLego\nCoca-Cola\nMcDonald’s\nNetflix\nApple\nAmazon\nAdidas\nNike\nHaribo\nRed Bull\nTesla\nYouTube\nInstagram\nTikTok\nWhatsApp\nSpotify\nAldi\nPlaymobil\nNivea\nTempo\nMaggi\nDeutsche Bahn\nPorsche\nLufthansa\nStarbucks\nPringles\nMilka\nDHL" },
+];
+
+// ---------- helpers ----------
+const $ = (s, el = document) => el.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const uid = () => "c-" + Math.random().toString(36).slice(2, 9);
+const TERMS = {
+  spy: { game: "Spion", role: "Spion", roles: "Spione", item: "Orte", one: "Ort" },
+  imp: { game: "Imposter", role: "Imposter", roles: "Imposter", item: "Begriffe", one: "Begriff" },
+};
+
+function parseText(text, type) {
+  const items = [];
+  for (const raw of String(text).split(/\r?\n/)) {
+    const line = raw.trim();
+    if (!line) continue;
+    if (type === "spy") {
+      const i = line.indexOf(":");
+      const name = (i < 0 ? line : line.slice(0, i)).trim();
+      const roles = [];
+      if (i >= 0) for (const r of line.slice(i + 1).split(",").map(r => r.trim()).filter(Boolean)) {
+        // "Kind, das weint" bleibt eine Rolle
+        if (roles.length && /^(der|die|das|den|dem|deren|dessen|wo|wer|was)\s/i.test(r)) roles[roles.length - 1] += ", " + r;
+        else roles.push(r);
+      }
+      if (name) items.push({ name, roles });
+    } else {
+      items.push({ name: line.replace(/^[-*•\d.)\s]+/, "").trim(), roles: [] });
+    }
+  }
+  return items.filter(x => x.name);
+}
+const toText = (pack) => pack.items.map(it => pack.type === "spy" && it.roles.length ? `${it.name}: ${it.roles.join(", ")}` : it.name).join("\n");
+BUILTIN.forEach(p => { p.items = parseText(p.text, p.type); p.builtin = true; delete p.text; });
+
+// ---------- persistent settings (this browser only) ----------
+const KEY = "spion-app-v1";
+const DEFAULTS = {
+  mode: "spy",
+  players: ["Spieler 1", "Spieler 2", "Spieler 3", "Spieler 4"],
+  spies: { spy: 1, imp: 1 },
+  minutes: { spy: 8, imp: 5 },
+  hint: true,
+  enabled: { spy: [], imp: [] },
+  seen: [],
+  custom: [],
+  recent: [],
+};
+function load() {
+  try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && typeof s === "object") return { ...DEFAULTS, ...s }; } catch (e) {}
+  return structuredClone(DEFAULTS);
+}
+let S = load();
+function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+// new built-in packs start switched on
+S.seen = S.seen || [];
+for (const p of BUILTIN) if (!S.seen.includes(p.id)) {
+  if (!S.enabled[p.type].includes(p.id)) S.enabled[p.type].push(p.id);
+  S.seen.push(p.id);
+}
+save();
+
+const allPacks = () => [...BUILTIN, ...S.custom];
+const packsOf = type => allPacks().filter(p => p.type === type);
+const packById = id => allPacks().find(p => p.id === id);
+function pool(type) {
+  const seen = new Set(), out = [];
+  for (const p of packsOf(type)) if (S.enabled[type].includes(p.id))
+    for (const it of p.items) if (!seen.has(it.name.toLowerCase())) { seen.add(it.name.toLowerCase()); out.push({ ...it, pack: p.name }); }
+  return out;
+}
+const cleanPlayers = () => S.players.map((n, i) => n.trim() || `Spieler ${i + 1}`);
+const maxSpies = n => Math.max(1, Math.floor((n - 1) / 2));
+
+// ---------- runtime state ----------
+let view = "home", G = null, editId = null, editType = "spy", packTab = "spy", confirmDel = false, tick = null, wakeLock = null;
+
+function toast(msg) {
+  const t = document.createElement("div"); t.className = "toast"; t.textContent = msg; document.body.appendChild(t);
+  setTimeout(() => t.remove(), 1800);
+}
+async function copy(text, area) {
+  try { await navigator.clipboard.writeText(text); toast("Kopiert"); }
+  catch (e) { if (area) { area.focus(); area.select(); } toast("Text markiert – jetzt kopieren"); }
+}
+async function keepAwake(on) {
+  try {
+    if (on && !wakeLock && navigator.wakeLock) wakeLock = await navigator.wakeLock.request("screen");
+    if (!on && wakeLock) { await wakeLock.release(); wakeLock = null; }
+  } catch (e) { wakeLock = null; }
+}
+
+// ---------- views ----------
+function render() {
+  clearInterval(tick); tick = null;
+  const app = $("#app");
+  app.innerHTML = ({ home: vHome, packs: vPacks, edit: vEdit, pass: vPass, talk: vTalk, end: vEnd })[view]();
+  if (view === "talk") { tick = setInterval(updTimer, 250); updTimer(); }
+  window.scrollTo(0, 0);
+}
+
+function vHome() {
+  const m = S.mode, T = TERMS[m], names = cleanPlayers(), n = names.length;
+  S.spies[m] = Math.min(S.spies[m], maxSpies(n));
+  const pl = pool(m), canStart = n >= 3 && pl.length > 0;
+  return `
+  <header class="brand">
+    <h1>Spion <span>&amp;</span> Imposter</h1>
+    <p>Eure Orte, eure Regeln.</p>
+  </header>
+
+  <div class="seg" role="group" aria-label="Spielmodus">
+    <button data-act="mode" data-v="spy" aria-pressed="${m === "spy"}">Spion</button>
+    <button data-act="mode" data-v="imp" aria-pressed="${m === "imp"}">Imposter</button>
+  </div>
+  <p class="mode-note">${m === "spy"
+    ? "Alle kennen den Ort und haben eine Rolle. Nur der Spion weiß nichts. Stellt euch reihum Fragen und entlarvt ihn, bevor er den Ort errät."
+    : "Alle bekommen dasselbe Wort, nur der Imposter nicht. Reihum sagt jede Person ein passendes Wort. Wer blufft?"}</p>
+
+  <section class="section">
+    <div class="section-head"><span class="label">Spieler · <span id="pl-count">${n}</span></span></div>
+    <div class="players">
+      ${S.players.map((p, i) => `
+        <div class="prow">
+          <span class="num">${String(i + 1).padStart(2, "0")}</span>
+          <input id="pl-${i}" data-pl="${i}" value="${esc(p)}" placeholder="Spieler ${i + 1}" autocomplete="off" aria-label="Name Spieler ${i + 1}">
+          <button class="icon-btn" data-act="delpl" data-i="${i}" aria-label="Spieler entfernen">×</button>
+        </div>`).join("")}
+    </div>
+    <div class="row"><button class="btn small" data-act="addpl">+ Spieler</button></div>
+  </section>
+
+  <section class="section">
+    <span class="label">Einstellungen</span>
+    <div class="settings">
+      <div class="set"><div>Anzahl ${T.roles}<div class="hint">max. ${maxSpies(n)} bei ${n} Spielern</div></div>
+        <div class="stepper"><button data-act="spies" data-d="-1" aria-label="weniger">−</button><output>${S.spies[m]}</output><button data-act="spies" data-d="1" aria-label="mehr">+</button></div></div>
+      <div class="set"><div>Rundenzeit</div>
+        <div class="stepper"><button data-act="min" data-d="-1" aria-label="kürzer">−</button><output>${S.minutes[m]} min</output><button data-act="min" data-d="1" aria-label="länger">+</button></div></div>
+      ${m === "imp" ? `<div class="set"><div>Kategorie als Hinweis<div class="hint">Der Imposter sieht z. B. „Tiere“</div></div>
+        <button class="switch" role="switch" aria-checked="${S.hint}" data-act="hint" aria-label="Hinweis für Imposter"></button></div>` : ""}
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><span class="label">Pakete</span><button class="btn small ghost" data-act="go-packs">Pakete verwalten</button></div>
+    <div class="chips">
+      ${packsOf(m).map(p => `<button class="chip" data-act="toggle" data-id="${p.id}" aria-pressed="${S.enabled[m].includes(p.id)}">${esc(p.name)} <small>${p.items.length}</small></button>`).join("")}
+      <button class="chip" data-act="new-pack">+ Eigenes Paket</button>
+    </div>
+    <p class="pool-note"><b>${pl.length}</b> ${T.item} im Spiel</p>
+  </section>
+
+  ${n < 3 ? `<p class="warn">Ihr braucht mindestens 3 Spieler.</p>` : ""}
+  ${pl.length === 0 ? `<p class="warn">Wähle mindestens ein Paket aus.</p>` : ""}
+  <button class="btn primary big" data-act="start" ${canStart ? "" : "disabled"}>Runde starten</button>`;
+}
+
+function vPacks() {
+  const T = TERMS[packTab];
+  return `
+  <div class="topbar"><button class="back" data-act="home" aria-label="Zurück">←</button><h2>Pakete</h2></div>
+  <div class="seg" role="group" aria-label="Pakettyp">
+    <button data-act="packtab" data-v="spy" aria-pressed="${packTab === "spy"}">Spion-Orte</button>
+    <button data-act="packtab" data-v="imp" aria-pressed="${packTab === "imp"}">Imposter-Wörter</button>
+  </div>
+  <div class="packlist">
+    ${packsOf(packTab).map(p => `
+      <div class="pack">
+        <div class="meta"><b>${esc(p.name)}${p.builtin ? `<span class="tag">Standard</span>` : ""}</b><span>${p.items.length} ${T.item}</span></div>
+        <button class="btn small" data-act="${p.builtin ? "dup" : "edit"}" data-id="${p.id}">${p.builtin ? "Kopieren" : "Bearbeiten"}</button>
+      </div>`).join("")}
+  </div>
+  <div class="row"><button class="btn primary" data-act="new-pack">+ Neues ${packTab === "spy" ? "Orte" : "Wort"}-Paket</button></div>
+
+  <div class="box">
+    <span class="label">Mit KI erstellen</span>
+    <p>Kopiere diese Vorlage, ändere das Thema und schick sie an Claude oder eine andere KI. Die Antwort fügst du in ein neues Paket ein.</p>
+    <textarea id="ai-prompt" class="short">${esc(aiPrompt(packTab))}</textarea>
+    <div class="row"><button class="btn small" data-act="copy-ai">Vorlage kopieren</button></div>
+  </div>
+
+  <div class="box">
+    <span class="label">Paket importieren</span>
+    <p>Füge hier ein Paket ein, das dir jemand über „Teilen“ geschickt hat.</p>
+    <textarea id="import" class="short" placeholder='{"name":"…","type":"spy","items":[…]}'></textarea>
+    <div class="row"><button class="btn small" data-act="import">Importieren</button></div>
+  </div>`;
+}
+function aiPrompt(type) {
+  return type === "spy"
+    ? `Erstelle 25 Orte für das Partyspiel "Spion" (Spyfall) zum Thema: Urlaub in Spanien.\nJeder Ort soll 6 typische Rollen haben, gemischt männlich und weiblich.\nAntworte nur mit einer Zeile pro Ort, genau in diesem Format:\nOrt: Rolle, Rolle, Rolle, Rolle, Rolle, Rolle`
+    : `Erstelle 30 Begriffe für das Partyspiel "Imposter" zum Thema: Filme und Serien.\nDie Begriffe sollen bekannt sein und sich gut umschreiben lassen.\nAntworte nur mit einem Begriff pro Zeile, ohne Nummerierung.`;
+}
+
+function vEdit() {
+  const p = editId ? packById(editId) : null;
+  const type = p ? p.type : editType, T = TERMS[type];
+  return `
+  <div class="topbar"><button class="back" data-act="go-packs" aria-label="Zurück">←</button><h2>${p ? "Paket bearbeiten" : "Neues Paket"}</h2></div>
+  <div class="field"><label class="label" for="ed-name">Name</label><input id="ed-name" value="${esc(p ? p.name : "")}" placeholder="${type === "spy" ? "z. B. Unsere Stammkneipen" : "z. B. Insider aus der Clique"}" autocomplete="off"></div>
+  <div class="field">
+    <label class="label" for="ed-text">${T.item} · eine Zeile pro ${T.one}</label>
+    <textarea id="ed-text" spellcheck="false" placeholder="${type === "spy" ? "Omas Garten: Oma, Enkel, Nachbar, Gärtner, Katze\nUnsere Uni-Mensa: Köchin, Erstsemester, Professor" : "Pizza\nKaraoke\nPinguin"}">${esc(p ? toText(p) : "")}</textarea>
+    <p class="mode-note">${type === "spy" ? "Format: <code>Ort: Rolle, Rolle, Rolle</code>. Rollen sind optional." : "Ein Begriff pro Zeile. Der Paketname dient als Hinweis für den Imposter."}</p>
+  </div>
+  <div class="row"><button class="btn primary" data-act="save-pack">Speichern</button>
+    ${p ? `<button class="btn" data-act="share">Teilen</button>
+      <button class="btn danger" data-act="del-pack">${confirmDel ? "Wirklich löschen?" : "Löschen"}</button>` : ""}
+  </div>
+  <div id="share-box" class="box" hidden>
+    <span class="label">Paket teilen</span>
+    <p>Schick diesen Text an deine Freunde. Sie fügen ihn unter „Paket importieren“ ein.</p>
+    <textarea id="share-text" class="short" readonly></textarea>
+    <div class="row"><button class="btn small" data-act="copy-share">Kopieren</button></div>
+  </div>`;
+}
+
+function vPass() {
+  const i = G.idx, name = G.players[i], isSpy = G.spies.includes(i), T = TERMS[G.mode];
+  const bar = `<div class="progress">${G.players.map((_, k) => `<i class="${k < i || (k === i && G.shown) ? "done" : ""}"></i>`).join("")}</div>`;
+  if (!G.shown) return `
+    <div class="stage">
+      ${bar}
+      <p class="label">Gib das Handy an</p>
+      <div class="who">${esc(name)}</div>
+      <p class="mode-note">Nur ${esc(name)} darf jetzt aufs Display schauen.</p>
+      <button class="btn primary big" data-act="show">Karte aufdecken</button>
+      <button class="btn ghost small" data-act="abort">Runde abbrechen</button>
+    </div>`;
+  let card;
+  if (isSpy) card = `
+    <div class="file spy"><span class="stamp">GEHEIM</span>
+      <span class="k">Deine Identität</span>
+      <div class="v">Du bist ${G.mode === "spy" ? "der Spion" : "der Imposter"}</div>
+      <p>${G.mode === "spy" ? "Du kennst den Ort nicht. Hör gut zu, stell unauffällige Fragen und versuch, den Ort zu erraten." : "Du kennst das Wort nicht. Hör zu, was die anderen sagen, und bluffe mit."}</p>
+      ${G.mode === "imp" && S.hint ? `<span class="k">Hinweis</span><div class="v role">${esc(G.item.pack)}</div>` : ""}
+      ${G.spies.length > 1 ? `<p>Ihr seid ${G.spies.length} ${T.roles}. Ihr wisst nicht, wer die anderen sind.</p>` : ""}
+    </div>`;
+  else card = `
+    <div class="file"><span class="stamp">AKTE ${String(i + 1).padStart(2, "0")}</span>
+      <span class="k">${G.mode === "spy" ? "Ort" : "Euer Wort"}</span>
+      <div class="v">${esc(G.item.name)}</div>
+      ${G.mode === "spy" && G.roles[i] ? `<span class="k">Deine Rolle</span><div class="v role">${esc(G.roles[i])}</div>` : ""}
+    </div>`;
+  return `
+    <div class="stage">
+      ${bar}
+      <p class="label">${esc(name)}</p>
+      ${card}
+      <button class="btn primary big" data-act="next">${i + 1 < G.players.length ? "Verdecken & weitergeben" : "Verdecken & los geht’s"}</button>
+    </div>`;
+}
+
+function vTalk() {
+  const T = TERMS[G.mode];
+  return `
+  <div class="topbar"><h2>${G.mode === "spy" ? "Verhör läuft" : "Wortrunde"}</h2></div>
+  <div id="timer" class="timer">--:--</div>
+  <div class="row" style="justify-content:center">
+    <button class="btn" data-act="pause" id="pause-btn">${G.paused ? "Weiter" : "Pause"}</button>
+    <button class="btn" data-act="plus">+1 min</button>
+  </div>
+  <p class="starter">${G.mode === "spy" ? "Erste Frage stellt" : "Es beginnt"}: <b>${esc(G.players[G.starter])}</b></p>
+  <p class="mode-note" style="text-align:center">${G.mode === "spy"
+    ? "Stellt euch reihum Fragen zum Ort. Wer antwortet, stellt die nächste Frage. Am Ende stimmt ihr ab, wer der Spion ist."
+    : `Reihum sagt jede Person ein Wort, das zum Begriff passt. Danach wird abgestimmt, wer ${T.role} ist.`}</p>
+  <button class="btn primary big" data-act="reveal">Auflösen</button>`;
+}
+
+function vEnd() {
+  const T = TERMS[G.mode];
+  return `
+  <div class="result">
+    <span class="label">${G.mode === "spy" ? "Der Ort war" : "Das Wort war"}</span>
+    <div class="big">${esc(G.item.name)}</div>
+    <span class="label" style="margin-top:14px">${G.spies.length > 1 ? T.roles + " waren" : (G.mode === "spy" ? "Der Spion war" : "Der Imposter war")}</span>
+    <div class="names">${G.spies.map(i => esc(G.players[i])).join(" & ")}</div>
+  </div>
+  ${G.mode === "spy" ? `<div class="rolelist">${G.players.map((p, i) => `<div class="${G.spies.includes(i) ? "is-spy" : ""}"><b>${esc(p)}</b><span>${G.spies.includes(i) ? "Spion" : esc(G.roles[i] || "–")}</span></div>`).join("")}</div>` : ""}
+  <button class="btn primary big" data-act="start">Neue Runde</button>
+  <button class="btn" data-act="home">Zur Übersicht</button>`;
+}
+
+// ---------- game ----------
+function startGame() {
+  const m = S.mode, players = cleanPlayers(), pl = pool(m);
+  if (players.length < 3 || !pl.length) return;
+  const fresh = pl.filter(x => !S.recent.includes(x.name));
+  const item = pick(fresh.length ? fresh : pl);
+  S.recent = [item.name, ...S.recent.filter(n => n !== item.name)].slice(0, Math.min(40, Math.floor(pl.length / 2)));
+  const nSpies = Math.min(S.spies[m], maxSpies(players.length));
+  const spies = shuffle(players.map((_, i) => i)).slice(0, nSpies).sort((a, b) => a - b);
+  const rolePool = shuffle(item.roles);
+  let r = 0;
+  const roles = players.map((_, i) => spies.includes(i) || !rolePool.length ? "" : rolePool[r++ % rolePool.length]);
+  G = {
+    mode: m, item, players, spies, roles, idx: 0, shown: false,
+    starter: Math.floor(Math.random() * players.length),
+    total: S.minutes[m] * 60, endAt: 0, left: S.minutes[m] * 60, paused: false, buzzed: false,
+  };
+  save(); keepAwake(true);
+  view = "pass"; render();
+}
+function updTimer() {
+  if (!G) return;
+  if (!G.paused) G.left = Math.max(0, (G.endAt - Date.now()) / 1000);
+  const s = Math.ceil(G.left), el = $("#timer");
+  if (!el) return;
+  el.textContent = `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
+  el.classList.toggle("low", s <= 30);
+  el.classList.toggle("paused", G.paused);
+  if (s === 0 && !G.buzzed) { G.buzzed = true; try { navigator.vibrate?.([300, 150, 300]); } catch (e) {} el.textContent = "Zeit!"; }
+}
+
+// ---------- events ----------
+document.addEventListener("input", e => {
+  const i = e.target.dataset?.pl;
+  if (i !== undefined) { S.players[+i] = e.target.value; save(); }
+});
+
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-act]"); if (!b) return;
+  const a = b.dataset.act, m = S.mode;
+  switch (a) {
+    case "mode": S.mode = b.dataset.v; save(); render(); break;
+    case "addpl": S.players.push(""); save(); render(); setTimeout(() => $(`#pl-${S.players.length - 1}`)?.focus(), 0); break;
+    case "delpl": S.players.splice(+b.dataset.i, 1); save(); render(); break;
+    case "spies": S.spies[m] = Math.min(maxSpies(cleanPlayers().length), Math.max(1, S.spies[m] + +b.dataset.d)); save(); render(); break;
+    case "min": S.minutes[m] = Math.min(30, Math.max(1, S.minutes[m] + +b.dataset.d)); save(); render(); break;
+    case "hint": S.hint = !S.hint; save(); render(); break;
+    case "toggle": {
+      const l = S.enabled[m], id = b.dataset.id;
+      S.enabled[m] = l.includes(id) ? l.filter(x => x !== id) : [...l, id]; save(); render(); break;
+    }
+    case "go-packs": packTab = view === "home" ? m : (editId ? packById(editId)?.type : editType) || packTab; view = "packs"; confirmDel = false; render(); break;
+    case "packtab": packTab = b.dataset.v; render(); break;
+    case "home": view = "home"; G = null; keepAwake(false); render(); break;
+    case "new-pack": editId = null; editType = view === "home" ? m : packTab; confirmDel = false; view = "edit"; render(); $("#ed-name").focus(); break;
+    case "edit": editId = b.dataset.id; confirmDel = false; view = "edit"; render(); break;
+    case "dup": {
+      const src = packById(b.dataset.id);
+      const p = { id: uid(), type: src.type, name: src.name + " (eigene Version)", items: structuredClone(src.items) };
+      S.custom.push(p); save(); editId = p.id; view = "edit"; toast("Kopie erstellt"); render(); break;
+    }
+    case "save-pack": {
+      const name = $("#ed-name").value.trim(), type = editId ? packById(editId).type : editType;
+      const items = parseText($("#ed-text").value, type);
+      if (!name) { toast("Gib dem Paket einen Namen"); $("#ed-name").focus(); return; }
+      if (!items.length) { toast(`Füge mindestens einen ${TERMS[type].one} hinzu`); $("#ed-text").focus(); return; }
+      if (editId) Object.assign(packById(editId), { name, items });
+      else { const p = { id: uid(), type, name, items }; S.custom.push(p); S.enabled[type].push(p.id); editId = p.id; }
+      save(); toast(`Gespeichert · ${items.length} ${TERMS[type].item}`); render(); break;
+    }
+    case "del-pack":
+      if (!confirmDel) { confirmDel = true; render(); return; }
+      S.custom = S.custom.filter(p => p.id !== editId);
+      for (const t of ["spy", "imp"]) S.enabled[t] = S.enabled[t].filter(x => x !== editId);
+      save(); confirmDel = false; editId = null; view = "packs"; toast("Paket gelöscht"); render(); break;
+    case "share": {
+      const p = packById(editId), box = $("#share-box");
+      $("#share-text").value = JSON.stringify({ name: p.name, type: p.type, items: p.items });
+      box.hidden = false; box.scrollIntoView({ behavior: "smooth", block: "nearest" }); break;
+    }
+    case "copy-share": copy($("#share-text").value, $("#share-text")); break;
+    case "copy-ai": copy($("#ai-prompt").value, $("#ai-prompt")); break;
+    case "import": {
+      try {
+        const d = JSON.parse($("#import").value);
+        if (!d || !["spy", "imp"].includes(d.type) || !Array.isArray(d.items)) throw 0;
+        const items = d.items.map(x => ({ name: String(x.name || "").trim(), roles: Array.isArray(x.roles) ? x.roles.map(String) : [] })).filter(x => x.name);
+        if (!items.length) throw 0;
+        const p = { id: uid(), type: d.type, name: String(d.name || "Importiert"), items };
+        S.custom.push(p); S.enabled[p.type].push(p.id); save(); packTab = p.type;
+        toast(`„${p.name}“ importiert`); render();
+      } catch (err) { toast("Das ist kein gültiges Paket. Kopiere den kompletten Text aus „Teilen“."); }
+      break;
+    }
+    case "start": startGame(); break;
+    case "show": G.shown = true; render(); break;
+    case "next":
+      G.shown = false;
+      if (G.idx + 1 < G.players.length) { G.idx++; render(); }
+      else { G.endAt = Date.now() + G.total * 1000; view = "talk"; render(); }
+      break;
+    case "abort": view = "home"; G = null; keepAwake(false); render(); break;
+    case "pause":
+      if (G.paused) { G.endAt = Date.now() + G.left * 1000; G.paused = false; }
+      else { updTimer(); G.paused = true; }
+      b.textContent = G.paused ? "Weiter" : "Pause"; updTimer(); break;
+    case "plus":
+      if (G.paused) G.left += 60; else G.endAt += 60000;
+      G.buzzed = false; updTimer(); break;
+    case "reveal": view = "end"; keepAwake(false); render(); break;
+  }
+});
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && G && view !== "end") { wakeLock = null; keepAwake(true); } });
+
+// keep a running round when the page is updated
+function boot(data) {
+  if (data && data.view) { view = data.view; G = data.G; editId = data.editId ?? null; packTab = data.packTab || packTab; }
+  render();
+}
+window.claude?.hot?.snapshot?.(() => ({ view, G, editId, packTab }));
+window.claude?.hot?.ready ? window.claude.hot.ready(boot) : boot(window.claude?.hot?.data ?? {});
+</script>
+
+<script>
+if ("serviceWorker" in navigator) addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+</script>
+</body>
+</html>
